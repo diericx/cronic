@@ -1,8 +1,10 @@
 use chrono::Utc;
-use cronic::Event;
-use cronic::EventHandler;
+use cronic::event::Event;
+use cronic::event::Repo;
 use rocket::form::Form;
 use rocket::State;
+use rocket_dyn_templates::context;
+use rocket_dyn_templates::Template;
 use rusqlite::Connection;
 use std::sync::Mutex;
 
@@ -16,19 +18,17 @@ struct UserInput {
     code: i32,
 }
 
-struct EventHandlerState {
-    event_handler_mutex: Mutex<cronic::EventHandler>,
+struct EventRepoState {
+    event_repo_mutex: Mutex<Repo>,
 }
 
 #[post("/new", data = "<user_input>")]
-fn new_event(
-    event_handler_state: &State<EventHandlerState>,
-    user_input: Form<UserInput>,
-) -> String {
-    let event_handler = event_handler_state.event_handler_mutex.lock().unwrap();
+fn new_event(event_repo_state: &State<EventRepoState>, user_input: Form<UserInput>) -> String {
+    let event_repo = event_repo_state.event_repo_mutex.lock().unwrap();
 
-    event_handler
+    event_repo
         .save(&Event {
+            id: 0,
             source: user_input.source.clone(),
             output: user_input.output.clone(),
             code: user_input.code,
@@ -41,26 +41,28 @@ fn new_event(
 }
 
 #[get("/")]
-fn index(event_handler_state: &State<EventHandlerState>) -> String {
-    let event_handler = event_handler_state.event_handler_mutex.lock().unwrap();
-    let sources = event_handler.get_sources().unwrap();
+fn index(event_repo_state: &State<EventRepoState>) -> Template {
+    let event_repo = event_repo_state.event_repo_mutex.lock().unwrap();
+    let events_by_source = event_repo.get_all_events_grouped_by_source().unwrap();
 
-    let mut content = String::from("");
-    for source in sources {
-        content += &format!("{}\n", source);
-    }
-    content
+    Template::render(
+        "events/index",
+        context! {
+            events_by_source,
+        },
+    )
 }
 
 #[launch]
 fn rocket() -> _ {
     let db_path = "/tmp/cronic.db";
     let conn = Connection::open(db_path).unwrap();
-    let event_handler = EventHandler::build(conn).unwrap();
+    let event_repo = Repo::build(conn).unwrap();
 
     rocket::build()
-        .manage(EventHandlerState {
-            event_handler_mutex: Mutex::new(event_handler),
+        .manage(EventRepoState {
+            event_repo_mutex: Mutex::new(event_repo),
         })
+        .attach(Template::fairing())
         .mount("/", routes![index, new_event])
 }

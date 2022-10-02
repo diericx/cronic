@@ -1,0 +1,25 @@
+<html>
+  <head></head>
+  <body>
+    <div>
+    {{#each events_by_source as |events source|}}
+    {{source}}
+    <br/>
+
+    {{#each events as |event|}}
+      <p style="padding-left: 15px">
+        <a href="/events/{{event.id}}">Show</a>
+        <br/>
+        <b>date:</b> {{event.date}}
+        <br/>
+        <b>code:</b> {{event.code}}
+        <br/>
+        <b>output:</b> <br/>{{event.output}}
+        <br/>
+      </p>
+    {{/each}}
+
+    {{/each}}
+    </div>
+  </body>
+</html>
