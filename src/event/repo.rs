@@ -32,6 +32,27 @@ impl Repo {
         Ok(())
     }
 
+    // Queries the databse for a single Event with a given id
+    pub fn get_event_by_id(self: &Repo, id: &u32) -> Result<Event, Error> {
+        let mut stmt = self.conn.prepare(&format!(
+            "SELECT id, source, code, output, date FROM event WHERE id = '{}'",
+            id
+        ))?;
+        let mut rows = stmt.query(params![])?;
+
+        match rows.next()? {
+            Some(row) => Ok(Event {
+                id: row.get(0)?,
+                source: row.get(1)?,
+                code: row.get(2)?,
+                output: row.get(3)?,
+                date: row.get(4)?,
+            }),
+            // TODO: Custom error?
+            None => Err(Error::InvalidQuery),
+        }
+    }
+
     // Queries the databse for all Events with a given source
     pub fn get_all_events_by_source(self: &Repo, source: &str) -> Result<Vec<Event>, Error> {
         let mut stmt = self.conn.prepare(&format!(

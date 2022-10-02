@@ -22,6 +22,32 @@ struct EventRepoState {
     event_repo_mutex: Mutex<Repo>,
 }
 
+#[get("/")]
+fn index(event_repo_state: &State<EventRepoState>) -> Template {
+    let event_repo = event_repo_state.event_repo_mutex.lock().unwrap();
+    let events_by_source = event_repo.get_all_events_grouped_by_source().unwrap();
+
+    Template::render(
+        "events/index",
+        context! {
+            events_by_source,
+        },
+    )
+}
+
+#[get("/<id>")]
+fn event(event_repo_state: &State<EventRepoState>, id: u32) -> Template {
+    let event_repo = event_repo_state.event_repo_mutex.lock().unwrap();
+    let event = event_repo.get_event_by_id(&id).unwrap();
+
+    Template::render(
+        "events/show",
+        context! {
+            event,
+        },
+    )
+}
+
 #[post("/new", data = "<user_input>")]
 fn new_event(event_repo_state: &State<EventRepoState>, user_input: Form<UserInput>) -> String {
     let event_repo = event_repo_state.event_repo_mutex.lock().unwrap();
@@ -40,19 +66,6 @@ fn new_event(event_repo_state: &State<EventRepoState>, user_input: Form<UserInpu
     format!("{}", 0)
 }
 
-#[get("/")]
-fn index(event_repo_state: &State<EventRepoState>) -> Template {
-    let event_repo = event_repo_state.event_repo_mutex.lock().unwrap();
-    let events_by_source = event_repo.get_all_events_grouped_by_source().unwrap();
-
-    Template::render(
-        "events/index",
-        context! {
-            events_by_source,
-        },
-    )
-}
-
 #[launch]
 fn rocket() -> _ {
     let db_path = "/tmp/cronic.db";
@@ -64,5 +77,6 @@ fn rocket() -> _ {
             event_repo_mutex: Mutex::new(event_repo),
         })
         .attach(Template::fairing())
-        .mount("/", routes![index, new_event])
+        .mount("/", routes![index])
+        .mount("/events", routes![event, new_event])
 }
