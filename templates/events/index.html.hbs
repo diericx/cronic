@@ -7,15 +7,8 @@
     <br/>
 
     {{#each events as |event|}}
-      <p style="padding-left: 15px">
-        <a href="/events/{{event.id}}">Show</a>
-        <br/>
-        <b>date:</b> {{event.date}}
-        <br/>
-        <b>code:</b> {{event.code}}
-        <br/>
-        <b>output:</b> <br/>{{event.output}}
-        <br/>
+      <p style="padding-left: 15px;">
+        <a style="padding: 5px; background-color: #ff6161; {{#if (eq event.code 0)}} background-color: #abd69a;{{/if}}" href="/events/{{event.id}}">{{event.date}}</a>
       </p>
     {{/each}}
 
