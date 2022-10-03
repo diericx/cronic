@@ -78,10 +78,16 @@ impl Repo {
     // Queries the databse for all Events and groups them by source
     pub fn get_all_events_grouped_by_source(
         self: &Repo,
+        limit: i32,
     ) -> Result<HashMap<String, Vec<Event>>, Error> {
-        let mut stmt = self
-            .conn
-            .prepare(&format!("SELECT id, source, code, output, date FROM event",))?;
+        let mut stmt = self.conn.prepare(&format!(
+            "select id, source, code, output, date from (
+    select id, source, code, output, date,
+           row_number() over (partition by source order by date desc) as date_rank 
+    from event) ranks
+where date_rank <= {};",
+            limit
+        ))?;
         let mut rows = stmt.query(params![])?;
 
         let mut events: HashMap<String, Vec<Event>> = HashMap::new();

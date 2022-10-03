@@ -25,7 +25,7 @@ struct EventRepoState {
 #[get("/")]
 fn index(event_repo_state: &State<EventRepoState>) -> Template {
     let event_repo = event_repo_state.event_repo_mutex.lock().unwrap();
-    let events_by_source = event_repo.get_all_events_grouped_by_source().unwrap();
+    let events_by_source = event_repo.get_all_events_grouped_by_source(5).unwrap();
 
     Template::render(
         "events/index",
