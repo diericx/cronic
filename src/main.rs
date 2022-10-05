@@ -6,6 +6,7 @@ use rocket::State;
 use rocket_dyn_templates::context;
 use rocket_dyn_templates::Template;
 use rusqlite::Connection;
+use std::env;
 use std::sync::Mutex;
 
 #[macro_use]
@@ -82,7 +83,13 @@ fn source(event_repo_state: &State<EventRepoState>, source: String) -> Template 
 
 #[launch]
 fn rocket() -> _ {
-    let db_path = "/tmp/cronic.db";
+    let default_db_path = "/tmp/cronic.db";
+
+    let db_path = match env::var_os("DB_PATH") {
+        Some(v) => v.into_string().unwrap(),
+        None => default_db_path.clone().to_string(),
+    };
+
     let conn = Connection::open(db_path).unwrap();
     let event_repo = Repo::build(conn).unwrap();
 
