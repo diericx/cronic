@@ -1,2 +1,8 @@
 [default.databases.sqlite_events]
 url = "/tmp/cronic_events.sqlite"
+
+[default]
+address = "0.0.0.0"
+
+[release]
+port = 80
