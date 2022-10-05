@@ -1,7 +1,14 @@
 <html>
   <head></head>
   <body>
+
+    <hr/>
+    <h3>{{event.source}}</h3>
+    <div>{{event.date}}</div>
+    <hr/>
+
     <div>
+    <a href="javascript:history.back()">Back</a>
     <br/>
       <p style="padding-left: 15px;">
         <b>ID: </b>{{event.id}}
@@ -12,7 +19,9 @@
         <br/>
         <b>OUTPUT: </b>
         <br/>
+        <code style=" background-color: #e3e3e3">
         {{event.output}}
+        </code>
       </p>
     </div>
   </body>

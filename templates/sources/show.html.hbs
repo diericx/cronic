@@ -1,21 +1,17 @@
 <html>
   <head></head>
   <body>
-    <hr/>
-    <h3>Dashboard</h3>
-    <hr/>
-
     <div>
-    {{#each events_by_source as |events source|}}
-    <a href="/sources/{{source}}">{{source}}</a>
+    <hr/>
+    <h3>{{source}}</h3>
+    <hr/>
+    <a href="javascript:history.back()">Back</a>
     <br/>
 
     {{#each events as |event|}}
       <p style="padding-left: 15px;">
         <a style="padding: 5px; background-color: #ff6161; {{#if (eq event.code 0)}} background-color: #abd69a;{{/if}}" href="/events/{{event.id}}">{{event.date}}</a>
       </p>
-    {{/each}}
-
     {{/each}}
     </div>
   </body>
