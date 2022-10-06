@@ -2,8 +2,7 @@
 FROM --platform=$BUILDPLATFORM rust:latest AS rust
 ARG TARGETPLATFORM
 RUN case "$TARGETPLATFORM" in \
-      "linux/arm/v7") echo armv7-unknown-linux-musleabihf > /rust_target.txt ;; \
-      "linux/arm/v6") echo arm-unknown-linux-musleabihf > /rust_target.txt ;; \
+      "linux/arm64") echo arm-unknown-linux-musleabihf > /rust_target.txt ;; \
       "linux/amd64") echo x86_64-unknown-linux-musl > /rust_target.txt ;; \
       *) exit 1 ;; \
     esac
