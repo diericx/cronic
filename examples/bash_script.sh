@@ -1,4 +1,4 @@
-OUTPUT=$(restic backup /home/zac 2>&1)
+OUTPUT=$(restic --help 2>&1)
 CODE=$?
 
 curl -X POST \

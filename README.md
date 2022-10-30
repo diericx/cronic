@@ -21,3 +21,9 @@ This is an example `curl` request for saving a new event.
 ```
 curl -X POST -d 'source=restic_backup_bookstack' -d 'output=successful backup!' -d 'code=0' http://localhost:8000/events/new
 ```
+
+## Screenshots
+
+![](./content/dashboard.jpeg)
+![](./content/event.jpeg)
+
