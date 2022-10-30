@@ -6,13 +6,13 @@ RUN case "$TARGETPLATFORM" in \
       "linux/amd64") echo x86_64-unknown-linux-musl > /rust_target.txt ;; \
       *) exit 1 ;; \
     esac
-RUN rustup target add $(cat /rust_target.txt)
-RUN apt-get update && apt-get install -y binutils-arm-linux-gnueabihf g++-aarch64-linux-gnu libc6-dev-arm64-cross musl-tools musl-dev build-essential gcc-x86-64-linux-gnu
 WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
 COPY src ./src
 
-RUN cargo build --verbose --release --target $(cat /rust_target.txt)
+RUN cargo install -f cross
+
+RUN cross build --verbose --release --target $(cat /rust_target.txt)
 # Move the binary to a location free of the target since that is not available in the next stage.
 RUN cp target/$(cat /rust_target.txt)/release/normally-closed .
 
