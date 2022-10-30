@@ -24,11 +24,13 @@ impl Repo {
     }
 
     // Saves an Event to the database
-    pub fn save(self: &Repo, event: &Event) -> Result<(), Error> {
-        self.conn.execute(
-            "INSERT INTO event(source, code, output, date) VALUES (?1, ?2, ?3, ?4)",
-            params![&event.source, &event.code, &event.output, &event.date],
-        )?;
+    pub fn save(self: &Repo, events: &Vec<Event>) -> Result<(), Error> {
+        for event in events {
+            self.conn.execute(
+                "INSERT INTO event(source, code, output, date) VALUES (?1, ?2, ?3, ?4)",
+                params![&event.source, &event.code, &event.output, &event.date],
+            )?;
+        }
         Ok(())
     }
 
@@ -131,20 +133,15 @@ where date_rank <= {};",
 mod tests {
     use super::*;
     use chrono::Utc;
-    use rand::{distributions::Alphanumeric, Rng};
 
-    fn generate_events(source: &str, code: i32, n: i32) -> Vec<Event> {
+    fn generate_events(source: &str, start: i32, end: i32) -> Vec<Event> {
         let mut events = Vec::new();
-        for i in 1..n {
+        for i in start..end {
             events.push(Event {
                 id: i,
-                code,
+                code: 1,
                 source: source.to_string(),
-                output: rand::thread_rng()
-                    .sample_iter(&Alphanumeric)
-                    .take(7)
-                    .map(char::from)
-                    .collect(),
+                output: format!("output_{}_{}", source, i),
                 date: Utc::now().to_rfc2822(),
             });
         }
@@ -152,21 +149,18 @@ mod tests {
     }
 
     #[test]
-    fn save_and_recall_single_event_by_source_id() {
-        let conn = Connection::open_in_memory().unwrap();
-        let event_handler = Repo::build(conn).unwrap();
-        let expected_output = generate_events("test_source", 1, 0);
+    fn save_events_and_query_by_source_id() {
+        let event_handler = Repo::build(Connection::open_in_memory().unwrap()).unwrap();
+        let events_set_1 = generate_events("set_1", 1, 4);
+        let events_set_2 = generate_events("set_2", 1, 4);
 
         // Save expected output
-        for event in &expected_output {
-            event_handler.save(&event).unwrap();
-        }
+        event_handler.save(&events_set_1).unwrap();
+        event_handler.save(&events_set_2).unwrap();
 
-        let events: Vec<Event> = event_handler
-            .get_all_events_by_source("test_source")
-            .unwrap();
+        let events: Vec<Event> = event_handler.get_all_events_by_source("set_1").unwrap();
 
-        let it = expected_output.iter().zip(events.iter());
+        let it = events_set_1.iter().zip(events.iter());
         for (_i, (expected, actual)) in it.enumerate() {
             if actual != expected {
                 panic!(
@@ -178,54 +172,15 @@ mod tests {
     }
 
     #[test]
-    fn save_and_recall_multiple_events_by_source_id() {
-        let conn = Connection::open_in_memory().unwrap();
-        let event_handler = Repo::build(conn).unwrap();
-        let expected_output = generate_events("test_source", 1, 2);
-        let extra_events = generate_events("test_source_2", 1, 2);
-
-        // Save expected output
-        for event in &expected_output {
-            event_handler.save(&event).unwrap();
-        }
-
-        // Save extra events
-        for event in &extra_events {
-            event_handler.save(&event).unwrap();
-        }
-
-        let events: Vec<Event> = event_handler
-            .get_all_events_by_source("test_source")
-            .unwrap();
-
-        let it = expected_output.iter().zip(events.iter());
-        for (_i, (expected, actual)) in it.enumerate() {
-            if actual != expected {
-                panic!(
-                    "Event does not match expected output.\n Expected:\n{:?} \n\n Actual:\n{:?}",
-                    expected, actual
-                );
-            }
-        }
-    }
-
-    #[test]
-    fn get_sources() {
-        let conn = Connection::open_in_memory().unwrap();
-        let event_handler = Repo::build(conn).unwrap();
-        let events_set_1 = generate_events("test_source", 1, 2);
-        let events_set_2 = generate_events("test_source_2", 1, 2);
+    fn query_events_by_source() {
+        let event_handler = Repo::build(Connection::open_in_memory().unwrap()).unwrap();
+        let events_set_1 = generate_events("test_source", 1, 3);
+        let events_set_2 = generate_events("test_source_2", 1, 3);
         let expected_output = vec!["test_source", "test_source_2"];
 
-        // Save expected output
-        for event in &events_set_1 {
-            event_handler.save(&event).unwrap();
-        }
-
-        // Save extra events
-        for event in &events_set_2 {
-            event_handler.save(&event).unwrap();
-        }
+        // Save events
+        event_handler.save(&events_set_1).unwrap();
+        event_handler.save(&events_set_2).unwrap();
 
         let actual: Vec<String> = event_handler.get_sources().unwrap();
 
@@ -233,6 +188,46 @@ mod tests {
             panic!(
                 "Event does not match expected output.\n Expected:\n{:?} \n\n Actual:\n{:?}",
                 expected_output, actual
+            );
+        }
+    }
+
+    #[test]
+    fn get_event_by_id() {
+        let event_handler = Repo::build(Connection::open_in_memory().unwrap()).unwrap();
+        let events_set_1 = generate_events("set_1", 1, 2);
+
+        // Save events
+        event_handler.save(&events_set_1).unwrap();
+
+        let event: Event = event_handler.get_event_by_id(&1).unwrap();
+        if event != events_set_1[0] {
+            panic!(
+                "Event does not match expected output.\n Expected:\n{:?} \n\n Actual:\n{:?}",
+                event, events_set_1[0]
+            );
+        }
+    }
+
+    #[test]
+    fn get_all_events_grouped_by_source() {
+        let event_handler = Repo::build(Connection::open_in_memory().unwrap()).unwrap();
+        let events_set_1 = generate_events("set_1", 1, 3);
+        let events_set_2 = generate_events("set_2", 3, 5);
+        let mut expected_output: HashMap<String, Vec<Event>> = HashMap::new();
+        expected_output.insert(String::from("set_1"), generate_events("set_1", 1, 3));
+        expected_output.insert(String::from("set_2"), generate_events("set_2", 3, 5));
+
+        // Save events
+        event_handler.save(&events_set_1).unwrap();
+        event_handler.save(&events_set_2).unwrap();
+
+        let actual = event_handler.get_all_events_grouped_by_source(99).unwrap();
+
+        if actual != expected_output {
+            panic!(
+                "Actual does not match expected output.\n Expected:\n{:?} \n\n Actual:\n{:?}",
+                actual, expected_output
             );
         }
     }

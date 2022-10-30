@@ -54,13 +54,13 @@ fn new_event(event_repo_state: &State<EventRepoState>, user_input: Form<UserInpu
     let event_repo = event_repo_state.event_repo_mutex.lock().unwrap();
 
     event_repo
-        .save(&Event {
+        .save(&vec![Event {
             id: 0,
             source: user_input.source.clone(),
             output: user_input.output.clone(),
             code: user_input.code,
             date: Utc::now().to_rfc2822(),
-        })
+        }])
         .unwrap();
 
     // TODO: return new id
