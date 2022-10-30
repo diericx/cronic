@@ -24,6 +24,6 @@ curl -X POST -d 'source=restic_backup_bookstack' -d 'output=successful backup!' 
 
 ## Screenshots
 
-![](./content/dashboard.jpeg)
-![](./content/event.jpeg)
+![](./content/dashboard.png)
+![](./content/event.png)
 
