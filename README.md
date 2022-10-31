@@ -27,3 +27,14 @@ curl -X POST -d 'source=restic_backup_bookstack' -d 'output=successful backup!' 
 ![](./content/dashboard.png)
 ![](./content/event.png)
 
+## Development
+
+### Mac cross compilation notes
+
+On Mac it seems we need to install a `musl` linker and ensure that the scripts know about it.
+
+Look into `musl-cross` and ensure [these steps are followed](https://github.com/rust-lang/backtrace-rs/issues/34), specifically:
+
+```
+TARGET_CC=x86_64-linux-musl-gcc cargo build ...
+```
