@@ -16,10 +16,24 @@ A dashboard is presented on `0.0.0.0:8000` that shows basic information for the 
 
 ## Usage
 
-This is an example `curl` request for saving a new event.
+### Storing events with bash
+
+An example of a bash script storing a new event can be found in the `examples/` directory.
+
+### Docker Compose
 
 ```
-curl -X POST -d 'source=restic_backup_bookstack' -d 'output=successful backup!' -d 'code=0' http://localhost:8000/events/new
+cronic:
+  container_name: cronic
+  image: diericx/cronic:latest
+  restart: always
+  environment:
+    - DB_PATH=/config/cronic_db.sqlite
+  volumes:
+    - cronic:/config
+    - customized_templates:/templates # OPTIONAL
+  ports:
+    - 80
 ```
 
 ## Screenshots
