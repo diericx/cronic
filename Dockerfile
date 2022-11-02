@@ -14,6 +14,7 @@ WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
 COPY src ./src
 
+RUN cargo test
 RUN cargo build --verbose --release --target $(cat /rust_target.txt)
 
 # Move the binary to a location free of the target since that is not available in the next stage.

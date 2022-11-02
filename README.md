@@ -16,9 +16,9 @@ A dashboard is presented on `0.0.0.0:8000` that shows basic information for the 
 
 ## Usage
 
-### Storing events with bash
+### Storing events 
 
-An example of a bash script storing a new event can be found in the `examples/` directory.
+The `examples/` dir contains a bash script and a python script with examples for storing events.
 
 ### Docker Compose
 
