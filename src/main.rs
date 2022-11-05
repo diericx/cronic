@@ -1,7 +1,7 @@
 use chrono::Utc;
 use cronic::event::Event;
 use cronic::event::Repo;
-use rocket::form::Form;
+use rocket::serde::json::Json;
 use rocket::State;
 use rocket_dyn_templates::context;
 use rocket_dyn_templates::Template;
@@ -11,13 +11,6 @@ use std::sync::Mutex;
 
 #[macro_use]
 extern crate rocket;
-
-#[derive(FromForm)]
-struct UserInput {
-    source: String,
-    output: String,
-    code: i32,
-}
 
 struct EventRepoState {
     event_repo_mutex: Mutex<Repo>,
@@ -49,16 +42,16 @@ fn event(event_repo_state: &State<EventRepoState>, id: u32) -> Template {
     )
 }
 
-#[post("/new", data = "<user_input>")]
-fn new_event(event_repo_state: &State<EventRepoState>, user_input: Form<UserInput>) -> String {
+#[post("/new", format = "json", data = "<event>")]
+fn new_event(event_repo_state: &State<EventRepoState>, event: Json<Event>) -> String {
     let event_repo = event_repo_state.event_repo_mutex.lock().unwrap();
 
     event_repo
         .save(&vec![Event {
             id: 0,
-            source: user_input.source.clone(),
-            output: user_input.output.clone(),
-            code: user_input.code,
+            source: event.source.clone(),
+            output: event.output.clone(),
+            code: event.code,
             date: Utc::now().to_rfc2822(),
         }])
         .unwrap();
