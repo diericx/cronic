@@ -1,14 +1,17 @@
 pub use self::repo::Repo;
+use rocket::serde::Deserialize;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
 mod repo;
 
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug, Deserialize)]
 pub struct Event {
+    #[serde(skip_deserializing)]
     pub id: i32,
     pub source: String,
     pub code: i32,
     pub output: String,
+    #[serde(skip_deserializing)]
     pub date: String,
 }
 

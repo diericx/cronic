@@ -9,7 +9,7 @@ edition = "2021"
 rusqlite = { version = "^0.24.1", features = ["bundled"] }
 chrono = "0.4"
 rand = "0.5"
-rocket = "0.5.0-rc.2"
+rocket = {version = "0.5.0-rc.2", features = ["json"]}
 serde = "1.0"
 
 [dependencies.rocket_db_pools]
